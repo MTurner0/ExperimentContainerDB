@@ -14,7 +14,7 @@ dummy_se_builder <- function(
   params["n"] <- n_features * n_samples
   data <- do.call(data_generating_process, params)
   assay <- matrix(data, n_features, n_samples)
-  
+
   coldat <- data.frame(sampleID = keygen(
     n_samples, ceiling(log(n_samples, base = 62))
     ))
@@ -35,7 +35,7 @@ dummy_se_builder <- function(
 # Used to make unique keys for features and samples
 keygen <- function(n_keys, keylength = 10) {
   keys <- character(length = 0L)
-  while(length(keys) < n_keys) {
+  while (length(keys) < n_keys) {
     key <- paste(
       sample(c(letters, LETTERS, 0:9), size = keylength, replace = TRUE),
       collapse = ""
