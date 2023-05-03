@@ -1,5 +1,5 @@
 # Makes a dummy SummarizedExperiment object of specified size.
-# Make this a class? Go to Kris to ask how?
+
 dummy_se_builder <- function(
     data_generating_process,
     params,

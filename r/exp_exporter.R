@@ -19,7 +19,7 @@ export_se <- function (experiment, db_name = "experiment") {
 
   SummarizedExperiment::assay(experiment) %>%
     unpivot_assay() %>%
-    dbWriteTable(exp_db, "assay", .)
+    DBI::dbWriteTable(exp_db, "assay", .)
 
   return(exp_db)
 }
@@ -29,7 +29,7 @@ unpivot_assay <- function(assay) {
   assay["featureID"] <- rownames(assay)
 
   tidyr::pivot_longer(assay,
-                      featureID,
+                      -featureID,
                       names_to = "sampleID",
                       values_to = "value")
 }
