@@ -9,3 +9,6 @@ if (!require("RSQLite", quietly = TRUE))
 
 if (!require("tidyverse", quietly = TRUE))
   install.packages("tidyverse")
+
+install.packages("devtools")
+devtools::install_github("MTurner0/maeplyr")
