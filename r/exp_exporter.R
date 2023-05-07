@@ -2,24 +2,39 @@
 
 library(dplyr)
 
-export_se <- function (experiment, db_name = "experiment") {
+export_se <- function (
+    experiment,
+    db_name = "experiment",
+    key = FALSE
+    ) {
 
   exp_db <- DBI::dbConnect(
     RSQLite::SQLite(),
     paste0("data/", db_name, ".sqlite", collapse = "")
     )
 
-  SummarizedExperiment::colData(experiment) %>%
-    data.frame() %>%
-    DBI::dbWriteTable(exp_db, "colData", .)
+  if (key) {
+    cd <- SummarizedExperiment::colData(experiment) %>%
+      data.frame()
+    DBI::dbExecute(exp_db, "drop table if exists colData;")
+    DBI::dbExecute(exp_db,
+                   "create table colData(sampleID, binary_attribute, primary key(sampleID));"
+    )
+    DBI::dbWriteTable(exp_db, "colData", cd, append = TRUE)
+  }
+  else {
+    SummarizedExperiment::colData(experiment) %>%
+      data.frame() %>%
+      DBI::dbWriteTable(exp_db, "colData", ., overwrite = TRUE)
+  }
 
   SummarizedExperiment::rowData(experiment) %>%
     data.frame() %>%
-    DBI::dbWriteTable(exp_db, "rowData", .)
+    DBI::dbWriteTable(exp_db, "rowData", ., overwrite = TRUE)
 
   SummarizedExperiment::assay(experiment) %>%
     unpivot_assay() %>%
-    DBI::dbWriteTable(exp_db, "assay", .)
+    DBI::dbWriteTable(exp_db, "assay", ., overwrite = TRUE)
 
   return(exp_db)
 }
