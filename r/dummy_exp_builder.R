@@ -1,4 +1,5 @@
 # Makes a dummy SummarizedExperiment object of specified size.
+# colData has a binary attribute ("A"/"B") that can be used for filtering
 
 dummy_se_builder <- function(
     data_generating_process,
@@ -16,9 +17,12 @@ dummy_se_builder <- function(
   data <- do.call(data_generating_process, params)
   assay <- matrix(data, n_features, n_samples)
 
-  coldat <- data.frame(sampleID = keygen(
-    n_samples, ceiling(log(n_samples, base = 62))
-    ))
+  coldat <- data.frame(
+    sampleID = keygen(
+      n_samples, ceiling(log(n_samples, base = 62))
+    ),
+    binary_attribute = sample(c("A", "B"), size = n_samples, replace = TRUE)
+  )
   colnames(assay) <- coldat$sampleID
 
   rowdat <- data.frame(featureID = keygen(
