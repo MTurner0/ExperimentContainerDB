@@ -16,7 +16,7 @@ experim <- dummy_se_builder(
   n_samples = 10,
   seed = 1416)
 
-experim.db <- export_se(experim, key = TRUE)
+experim.db <- export_se(experim, drop_empty = TRUE)
 
 # Normalization
 
@@ -57,7 +57,7 @@ filter_query <- "SELECT featureID, assay.sampleID, value, binary_attribute
 res <- data.frame()
 set.seed(1416)
 
-for (i in seq(from = 25, to = 500, by = 25)) {
+for (i in 10:100) {
   
   experim <- dummy_se_builder(
     rpois,
@@ -66,11 +66,11 @@ for (i in seq(from = 25, to = 500, by = 25)) {
     n_samples = i)
   
   experim.db <- export_se(experim)
-  loki <- export_se(experim, "loki", key = TRUE)
+  #loki <- export_se(experim, "loki", key = TRUE)
   
   df_temp <- microbenchmark(
     SQLite = dbGetQuery(experim.db, normalization_query),
-    `SQLite (key)` = dbGetQuery(loki, normalization_query),
+    #`SQLite (key)` = dbGetQuery(loki, normalization_query),
     SummExp = norm_r(experim),
     unit = "ms"
   ) %>%
@@ -82,7 +82,7 @@ for (i in seq(from = 25, to = 500, by = 25)) {
 
   df_temp <- microbenchmark(
     SQLite = dbGetQuery(experim.db, trim_query),
-    `SQLite (key)` = dbGetQuery(loki, trim_query),
+    #`SQLite (key)` = dbGetQuery(loki, trim_query),
     SummExp = trim_empty_rows(experim),
     unit = "ms"
   ) %>%
@@ -95,7 +95,7 @@ for (i in seq(from = 25, to = 500, by = 25)) {
 
   df_temp <- microbenchmark(
     SQLite = dbGetQuery(experim.db, filter_query),
-    `SQLite (key)` = dbGetQuery(loki, filter_query),
+    #`SQLite (key)` = dbGetQuery(loki, filter_query),
     SummExp = filter_colData(experim, binary_attribute == "B"),
     unit = "ms"
   ) %>%
@@ -116,19 +116,19 @@ for (i in seq(from = 25, to = 500, by = 25)) {
 # Plotting
 
 theme_set(theme_bw())
-pally <- c("#E69F00", "#009E73", "#56B4E9", "#CC79A7", "#D55E00", "#0072B2")
 
 res %>%
-  ggplot(aes(x = n, y = median, color = expr)) +
-  scale_color_manual(name = "Container", values = c("#009E73", "#CC79A7", "#D55E00")) +
-  geom_line() +
-  facet_wrap(~test) +
-  labs(x = "n features, n samples", y = "Median execution time (ms)")
+   ggplot(aes(x = n, y = median, color = expr)) +
+   scale_color_manual(name = "Container", values = c("#009E73", "#CC79A7")) +
+   geom_line() +
+   facet_wrap(~test) +
+   labs(x = "Size (n features, n samples)", y = "Median execution time (ms)")
 
-res %>%
-  filter(test == "Sample filtering") %>%
-  ggplot(aes(x = n, y = median, color = expr)) +
-  scale_color_manual(name = "Container", values = c("#009E73", "red", "#CC79A7")) +
-  geom_line() +
-  #facet_wrap(~test) +
-  labs(x = "Size (n features, n samples)", y = "Median execution time (ms)")
+# For use with primary key testing
+# res %>%
+#   filter(test == "Sample filtering") %>%
+#   ggplot(aes(x = n, y = median, color = expr)) +
+#   scale_color_manual(name = "Container", values = c("#009E73", "red", "#CC79A7")) +
+#   geom_line() +
+#   #facet_wrap(~test) +
+#   labs(x = "Size (n features, n samples)", y = "Median execution time (ms)")

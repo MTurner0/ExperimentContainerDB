@@ -1,11 +1,11 @@
 # Define functions to export a SummarizedExperiment to a trio of SQLite tables.
-
 library(dplyr)
 
 export_se <- function (
     experiment,
     db_name = "experiment",
-    key = FALSE
+    key = FALSE,
+    drop_empty = FALSE
     ) {
 
   exp_db <- DBI::dbConnect(
@@ -32,10 +32,17 @@ export_se <- function (
     data.frame() %>%
     DBI::dbWriteTable(exp_db, "rowData", ., overwrite = TRUE)
 
-  SummarizedExperiment::assay(experiment) %>%
-    unpivot_assay() %>%
-    DBI::dbWriteTable(exp_db, "assay", ., overwrite = TRUE)
-
+  if (drop_empty) {
+    SummarizedExperiment::assay(experiment) %>%
+      unpivot_assay() %>%
+      filter(value > 0) %>%
+      DBI::dbWriteTable(exp_db, "assay", ., overwrite = TRUE)    
+  }
+  else {
+    SummarizedExperiment::assay(experiment) %>%
+      unpivot_assay() %>%
+      DBI::dbWriteTable(exp_db, "assay", ., overwrite = TRUE)
+  }
   return(exp_db)
 }
 
